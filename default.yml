@@ -12,8 +12,6 @@ variables:
   DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_VERIFY: 1
   DOCKER_CERT_PATH: /certs/client
-  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
 
 before_script:
   - if [ -n "$GROUP_CI_REGISTRY_USER" -a -n "$GROUP_CI_REGISTRY_PASSWORD" ]; then echo "Group CI login..."; docker login -u "$GROUP_CI_REGISTRY_USER" -p "$GROUP_CI_REGISTRY_PASSWORD" registry.gitlab.iitsp.com/allworldit/docker; fi
@@ -23,6 +21,7 @@ build:
   stage: build
   script:
     - set
+    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
     - docker build --pull -t "$CONTAINER_TEST_IMAGE" .
     # Branch tags are required for CI
     - docker push "$CONTAINER_TEST_IMAGE"
@@ -30,6 +29,7 @@ build:
 test:
   stage: test
   script:
+    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
     - docker pull "$CONTAINER_TEST_IMAGE"
     - docker run -e CI=true "$CONTAINER_TEST_IMAGE"
 
@@ -37,6 +37,8 @@ test:
 release-image:
   stage: release
   script:
+    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - export CONTAINER_RELEASE_IMAGE="$CI_REGISTRY_IMAGE:latest"
     - docker pull "$CONTAINER_TEST_IMAGE"
     - docker tag "$CONTAINER_TEST_IMAGE" "$CONTAINER_RELEASE_IMAGE"
     - docker push "$CONTAINER_RELEASE_IMAGE"
