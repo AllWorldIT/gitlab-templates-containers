@@ -22,6 +22,7 @@ before_script:
 build:
   stage: build
   script:
+    - set
     - docker build --pull -t "$CONTAINER_TEST_IMAGE" .
     # Branch tags are required for CI
     - docker push "$CONTAINER_TEST_IMAGE"
