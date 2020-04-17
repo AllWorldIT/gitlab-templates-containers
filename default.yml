@@ -22,7 +22,7 @@ build:
   script:
     - docker build --pull -t $CONTAINER_TEST_IMAGE .
     # Only push the image if its not master
-    - if [ "$CONTAINER_TEST_IMAGE" != "master" ]; then docker push $CONTAINER_TEST_IMAGE; fi
+    - if [ "$CI_COMMIT_REF_NAME" != "master" ]; then docker push $CONTAINER_TEST_IMAGE; fi
 
 test:
   stage: test
