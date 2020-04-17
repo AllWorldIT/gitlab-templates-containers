@@ -23,8 +23,8 @@ build:
   stage: build
   script:
     - docker build --pull -t "$CONTAINER_TEST_IMAGE" .
-    # Only push the image if its not master
-    - if [ "$CI_COMMIT_REF_NAME" != "master" ]; then docker push "$CONTAINER_TEST_IMAGE"; fi
+    # Branch tags are required for CI
+    - docker push "$CONTAINER_TEST_IMAGE"
 
 test:
   stage: test
