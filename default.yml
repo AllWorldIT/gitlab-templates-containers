@@ -21,7 +21,7 @@ build:
   stage: build
   script:
     - set
-    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - if [ -n "$CI_BUILD_TAG" ]; then export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_BUILD_TAG"; else export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"; fi
     - docker build --pull --build-arg=VERSION_INFO="$CI_PROJECT_TITLE [$CI_PROJECT_PATH_SLUG] build $CI_BUILD_ID commit $CI_COMMIT_SHORT_SHA ($(date -Iseconds))" --tag "$CONTAINER_TEST_IMAGE" .
     # Branch tags are required for CI
     - docker push "$CONTAINER_TEST_IMAGE"
@@ -29,7 +29,7 @@ build:
 test:
   stage: test
   script:
-    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - if [ -n "$CI_BUILD_TAG" ]; then export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_BUILD_TAG"; else export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"; fi
     - docker pull "$CONTAINER_TEST_IMAGE"
     - docker run -e CI=true "$CONTAINER_TEST_IMAGE"
 
@@ -37,7 +37,7 @@ test:
 release-timestamp:
   stage: release
   script:
-    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - if [ -n "$CI_BUILD_TAG" ]; then export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_BUILD_TAG"; else export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"; fi
     - export CONTAINER_DATED_IMAGE="$CI_REGISTRY_IMAGE:$(date +%Y%m%d)"
     - docker pull "$CONTAINER_TEST_IMAGE"
     - docker tag "$CONTAINER_TEST_IMAGE" "$CONTAINER_DATED_IMAGE"
@@ -49,7 +49,7 @@ release-timestamp:
 release-latest:
   stage: release
   script:
-    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - if [ -n "$CI_BUILD_TAG" ]; then export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_BUILD_TAG"; else export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"; fi
     - export CONTAINER_RELEASE_IMAGE="$CI_REGISTRY_IMAGE:latest"
     - docker pull "$CONTAINER_TEST_IMAGE"
     - docker tag "$CONTAINER_TEST_IMAGE" "$CONTAINER_RELEASE_IMAGE"
