@@ -33,18 +33,27 @@ test:
     - docker pull "$CONTAINER_TEST_IMAGE"
     - docker run -e CI=true "$CONTAINER_TEST_IMAGE"
 
-# Releases are only done for the master repository, which maps to "latest"
-release-image:
+# Dated releases are only done for master
+release-timestamp:
   stage: release
   script:
     - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
     - export CONTAINER_DATED_IMAGE="$CI_REGISTRY_IMAGE:$(date +%Y%m%d)"
-    - export CONTAINER_RELEASE_IMAGE="$CI_REGISTRY_IMAGE:latest"
     - docker pull "$CONTAINER_TEST_IMAGE"
     - docker tag "$CONTAINER_TEST_IMAGE" "$CONTAINER_DATED_IMAGE"
-    - docker tag "$CONTAINER_TEST_IMAGE" "$CONTAINER_RELEASE_IMAGE"
     - docker push "$CONTAINER_DATED_IMAGE"
-    - docker push "$CONTAINER_RELEASE_IMAGE"
   only:
     - master
+
+# Releases are only done for the master repository, which maps to "latest"
+release-latest:
+  stage: release
+  script:
+    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - export CONTAINER_RELEASE_IMAGE="$CI_REGISTRY_IMAGE:latest"
+    - docker pull "$CONTAINER_TEST_IMAGE"
+    - docker tag "$CONTAINER_TEST_IMAGE" "$CONTAINER_RELEASE_IMAGE"
+    - docker push "$CONTAINER_RELEASE_IMAGE"
+  only:
+    - tags
 
