@@ -21,8 +21,8 @@ build:
   stage: build
   script:
     - set
-    - if [ -n "$CI_BUILD_TAG" ]; then export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_BUILD_TAG"; else export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"; fi
-    - docker build --pull --build-arg=VERSION_INFO="$CI_PROJECT_TITLE [$CI_PROJECT_PATH_SLUG] build $CI_BUILD_ID commit $CI_COMMIT_SHORT_SHA ($(date -Iseconds))" --tag "$CONTAINER_TEST_IMAGE" .
+    - if [ -n "$CI_BUILD_TAG" ]; then export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_BUILD_TAG"; VER=" $CI_BUILD_TAG"; else export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"; VER=""; fi
+    - docker build --pull --build-arg=VERSION_INFO="$CI_PROJECT_TITLE [$CI_PROJECT_PATH_SLUG]$VER build $CI_BUILD_ID commit $CI_COMMIT_SHORT_SHA ($(date -Iseconds))" --tag "$CONTAINER_TEST_IMAGE" .
     # Branch tags are required for CI
     - docker push "$CONTAINER_TEST_IMAGE"
 
