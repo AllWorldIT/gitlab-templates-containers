@@ -16,7 +16,7 @@ variables:
 before_script:
   - if [ -n "${GROUP_CI_REGISTRY_USER}" -a -n "${GROUP_CI_REGISTRY_PASSWORD}" ]; then
       echo "Group CI login...";
-      echo "${GROUP_CI_REGISTRY_PASSWORD}" | docker login --username "${GROUP_CI_REGISTRY_USER}" -password-stdin registry.gitlab.iitsp.com/allworldit/docker;
+      echo "${GROUP_CI_REGISTRY_PASSWORD}" | docker login --username "${GROUP_CI_REGISTRY_USER}" --password-stdin registry.gitlab.iitsp.com/allworldit/docker;
     fi
   - echo "${CI_REGISTRY_PASSWORD}" | docker login --username "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"
   # Work out some things we may need below
