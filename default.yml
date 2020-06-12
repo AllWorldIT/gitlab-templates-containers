@@ -1,6 +1,6 @@
-image: docker:19.03.8
+image: docker:19.03
 services:
-  - docker:19.03.8-dind
+  - docker:19.03-dind
 
 stages:
   - build
