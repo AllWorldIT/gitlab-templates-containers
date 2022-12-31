@@ -103,7 +103,8 @@ build:
     - \[ -z "$CONTAINER_DESCRIPTION" ] && CONTAINER_DESCRIPTION="$CI_PROJECT_DESCRIPTION"
     - set -- "$@" --label "org.opencontainers.image.description=$PROJECT_DESCRIPTION"
 
-    - set -- "$@" --label "org.opencontainers.image.base.name=$CONTAINER_IMAGE_PUSH"
+    - CONTAINER_BASE_NAME=$(echo "$CONTAINER_IMAGE_PUSH" | sed -e 's/:443//')
+    - set -- "$@" --label "org.opencontainers.image.base.name=$CONTAINER_BASE_NAME"
 
     - \[ -z "$CONTAINER_URL" ] && CONTAINER_URL="$CI_PROJECT_URL"
     - set -- "$@" --label "org.opencontainers.image.url=$CONTAINER_URL"
