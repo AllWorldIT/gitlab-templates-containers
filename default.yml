@@ -39,7 +39,7 @@ build:
     # Work out image naming and versioning
     #
     - TIMESTAMP=$(date +%Y%m%d%H%M%S)
-    - TIMESTAMP_RFC3339=$(date --rfc-3339=seconds)
+    - TIMESTAMP_RFC3339=$(date -Iseconds | sed -e 's/T/ /')
     - |
       echo "TIMESTAMP: ${TIMESTAMP}"
       echo "TIMESTAMP_RFC3339: ${TIMESTAMP_RFC3339}"
