@@ -49,7 +49,7 @@ build:
       echo "CI_COMMIT_BRANCH: ${CI_COMMIT_BRANCH}"
       echo "CI_COMMIT_TAG: ${CI_COMMIT_TAG}"
     # Setup the CI image name we'll be using
-    - export CONTAINER_TAG="${CI_REGISTRY_IMAGE}/pipelines:${CI_PIPELINE_IID}"
+    - export CONTAINER_TAG="/builds:${CI_PIPELINE_IID}"
     # If we're a branch we'll be adding a :latest push
     - |
       if [ -n "${CI_COMMIT_BRANCH}" ]; then
@@ -59,8 +59,8 @@ build:
           REPO_PREFIX=""
         fi
         CONTAINER_VERSION="rolling${REPO_PREFIX} ${TIMESTAMP}"
-        export CONTAINER_IMAGE_PUSH="${CI_REGISTRY_IMAGE}${REPO_PREFIX}:${TIMESTAMP}"
-        export CONTAINER_IMAGE_PUSH_LATEST="${CI_REGISTRY_IMAGE}${REPO_PREFIX}:latest"
+        export CONTAINER_IMAGE_PUSH="${REPO_PREFIX}:${TIMESTAMP}"
+        export CONTAINER_IMAGE_PUSH_LATEST="${REPO_PREFIX}:latest"
       # And if we're tagged, it means we're just pushing that tag
       elif [ -n "${CI_COMMIT_TAG}" ]; then
         # Remove v before the version
@@ -73,7 +73,7 @@ build:
           exit 1
         fi
         CONTAINER_VERSION="version ${CI_COMMIT_TAG}"
-        export CONTAINER_IMAGE_PUSH="${CI_REGISTRY_IMAGE}:${CONTAINER_IMAGE_TAG}"
+        export CONTAINER_IMAGE_PUSH=":${CONTAINER_IMAGE_TAG}"
       else
         echo "ERROR determining type of image"
         exit 1
@@ -95,15 +95,13 @@ build:
 
     - \[ -n "$CONTAINER_VENDOR" ] && set -- "$@" --label "org.opencontainers.image.vendor=$CONTAINER_VENDOR"
 
-    - set -- "$@" --label "org.opencontainers.image.ref.name=$CI_PROJECT_PATH"
+    - set -- "$@" --label "org.opencontainers.image.ref.name=$CONTAINER_IMAGE_PUSH"
 
     - \[ -z "$CONTAINER_TITLE" ] && CONTAINER_TITLE="$CI_PROJECT_TITLE"
     - set -- "$@" --label "org.opencontainers.image.title=$CONTAINER_TITLE"
 
     - \[ -z "$CONTAINER_DESCRIPTION" ] && CONTAINER_DESCRIPTION="$CI_PROJECT_DESCRIPTION"
     - set -- "$@" --label "org.opencontainers.image.description=$PROJECT_DESCRIPTION"
-
-    - set -- "$@" --label "org.opencontainers.image.base.name=$CONTAINER_IMAGE_PUSH"
 
     - \[ -z "$CONTAINER_URL" ] && CONTAINER_URL="$CI_PROJECT_URL"
     - set -- "$@" --label "org.opencontainers.image.url=$CONTAINER_URL"
@@ -120,10 +118,10 @@ build:
     - docker build --pull
       --build-arg=VERSION_INFO="${CI_PROJECT_TITLE} [${CI_PROJECT_PATH}] ${CONTAINER_VERSION} build ${CI_PIPELINE_IID} commit ${CI_COMMIT_SHORT_SHA} ($TIMESTAMP_RFC3339)"
       "$@"
-      --tag "${CONTAINER_TAG}" .
+      --tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" .
 
     # Push container tag
-    - docker push "${CONTAINER_TAG}"
+    - docker push "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
 
   artifacts:
     reports:
@@ -133,8 +131,8 @@ build:
 test:
   stage: test
   script:
-    - docker pull "${CONTAINER_TAG}"
-    - docker run -e CI=true "${CONTAINER_TAG}"
+    - docker pull "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
+    - docker run -e CI=true "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
   dependencies:
     - build
 
@@ -143,20 +141,20 @@ release:
   stage: release
   script:
     # Grab CI image
-    - docker pull "${CONTAINER_TAG}"
+    - docker pull "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
     # This is the versioned image we're pushing
     - |
       if [ -n "${CONTAINER_IMAGE_PUSH}" ]; then
-        echo "Pushing '${CONTAINER_IMAGE_PUSH}"
-        docker tag "${CONTAINER_TAG}" "${CONTAINER_IMAGE_PUSH}"
-        docker push "${CONTAINER_IMAGE_PUSH}"
+        echo "Pushing '${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH}"
+        docker tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH}"
+        docker push "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH}"
       fi
     # And this is the :latest if applicable
     - |
       if [ -n "${CONTAINER_IMAGE_PUSH_LATEST}" ]; then
-        echo "Pushing :latest '${CONTAINER_IMAGE_PUSH_LATEST}"
-        docker tag "${CONTAINER_TAG}" "${CONTAINER_IMAGE_PUSH_LATEST}"
-        docker push "${CONTAINER_IMAGE_PUSH_LATEST}"
+        echo "Pushing :latest '${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH_LATEST}"
+        docker tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH_LATEST}"
+        docker push "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH_LATEST}"
       fi
   dependencies:
     - build
