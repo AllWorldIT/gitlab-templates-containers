@@ -22,9 +22,10 @@ variables:
 
 # Log into our repositories before any script being run
 before_script:
-  - if [ -n "${GROUP_CI_REGISTRY_USER}" -a -n "${GROUP_CI_REGISTRY_PASSWORD}" ]; then
-      echo "Group CI login...";
-      echo "${GROUP_CI_REGISTRY_PASSWORD}" | docker login --username "${GROUP_CI_REGISTRY_USER}" --password-stdin "${GROUP_CI_REGISTRY}";
+  - |
+    if [ -n "${GROUP_CI_REGISTRY_USER}" -a -n "${GROUP_CI_REGISTRY_PASSWORD}" ]; then
+      echo "Group CI login..."
+      echo "${GROUP_CI_REGISTRY_PASSWORD}" | docker login --username "${GROUP_CI_REGISTRY_USER}" --password-stdin "${GROUP_CI_REGISTRY}"
     fi
   - echo "${CI_REGISTRY_PASSWORD}" | docker login --username "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"
 
@@ -145,16 +146,18 @@ release:
     # Grab CI image
     - docker pull "${CONTAINER_TAG}"
     # This is the versioned image we're pushing
-    - if [ -n "${CONTAINER_IMAGE_PUSH}" ]; then
+    - |
+      if [ -n "${CONTAINER_IMAGE_PUSH}" ]; then
         echo "Pushing '${CONTAINER_IMAGE_PUSH}"
-        docker tag "${CONTAINER_TAG}" "${CONTAINER_IMAGE_PUSH}";
-        docker push "${CONTAINER_IMAGE_PUSH}";
+        docker tag "${CONTAINER_TAG}" "${CONTAINER_IMAGE_PUSH}"
+        docker push "${CONTAINER_IMAGE_PUSH}"
       fi
     # And this is the :latest if applicable
-    - if [ -n "${CONTAINER_IMAGE_PUSH_LATEST}" ]; then
+    - |
+      if [ -n "${CONTAINER_IMAGE_PUSH_LATEST}" ]; then
         echo "Pushing :latest '${CONTAINER_IMAGE_PUSH_LATEST}"
-        docker tag "${CONTAINER_TAG}" "${CONTAINER_IMAGE_PUSH_LATEST}";
-        docker push "${CONTAINER_IMAGE_PUSH_LATEST}";
+        docker tag "${CONTAINER_TAG}" "${CONTAINER_IMAGE_PUSH_LATEST}"
+        docker push "${CONTAINER_IMAGE_PUSH_LATEST}"
       fi
   dependencies:
     - build
