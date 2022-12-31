@@ -1,6 +1,11 @@
 image: docker:latest
 
 
+default:
+  tags:
+    - dind
+
+
 # Use a docker service to build our images
 services:
   - docker:dind
@@ -32,8 +37,6 @@ before_script:
 
 build:
   stage: build
-  tags:
-    - dind
   script:
     #
     # Work out image naming and versioning
@@ -86,37 +89,37 @@ build:
     #
     # Work out labels to add
     #
-    - LABELS=()
-    - LABELS+=(--label "org.opencontainers.image.created=$TIMESTAMP_RFC3339")
-    - LABELS+=(--label "org.opencontainers.image.revision=$CI_COMMIT_SHORT_SHA")
+    - set --
+    - set -- "$@" --label "org.opencontainers.image.created=$TIMESTAMP_RFC3339"
+    - set -- "$@" --label "org.opencontainers.image.revision=$CI_COMMIT_SHORT_SHA"
 
-    - \[ -n "$CONTAINER_VENDOR" ] && LABELS+=(--label "org.opencontainers.image.vendor=$CONTAINER_VENDOR")
+    - \[ -n "$CONTAINER_VENDOR" ] && set -- "$@" --label "org.opencontainers.image.vendor=$CONTAINER_VENDOR"
 
-    - LABELS+=(--label "org.opencontainers.image.ref.name=$CI_PROJECT_PATH")
+    - set -- "$@" --label "org.opencontainers.image.ref.name=$CI_PROJECT_PATH"
 
     - \[ -z "$CONTAINER_TITLE" ] && CONTAINER_TITLE="$CI_PROJECT_TITLE"
-    - LABELS+=(--label "org.opencontainers.image.title=$CONTAINER_TITLE")
+    - set -- "$@" --label "org.opencontainers.image.title=$CONTAINER_TITLE"
 
     - \[ -z "$CONTAINER_DESCRIPTION" ] && CONTAINER_DESCRIPTION="$CI_PROJECT_DESCRIPTION"
-    - LABELS+=(--label "org.opencontainers.image.description=$PROJECT_DESCRIPTION")
+    - set -- "$@" --label "org.opencontainers.image.description=$PROJECT_DESCRIPTION"
 
-    - LABELS+=(--label "org.opencontainers.image.base.name=$CONTAINER_IMAGE_PUSH")
+    - set -- "$@" --label "org.opencontainers.image.base.name=$CONTAINER_IMAGE_PUSH"
 
     - \[ -z "$CONTAINER_URL" ] && CONTAINER_URL="$CI_PROJECT_URL"
-    - LABELS+=(--label "org.opencontainers.image.url=$CONTAINER_URL")
+    - set -- "$@" --label "org.opencontainers.image.url=$CONTAINER_URL"
 
     - \[ -z "$CONTAINER_DOCUMENTATION" ] && CONTAINER_DOCUMENTATION="$CI_PROJECT_URL"
-    - LABELS+=(--label "org.opencontainers.image.documentation=$CONTAINER_DOCUMENTATION)
+    - set -- "$@" --label "org.opencontainers.image.documentation=$CONTAINER_DOCUMENTATION"
 
     - \[ -z "$CONTAINER_SOURCE" ] && CONTAINER_SOURCE="${CI_PROJECT_URL}.git"
-    - LABELS+=(--label "org.opencontainers.image.source=$CONTAINER_SOURCE")
+    - set -- "$@" --label "org.opencontainers.image.source=$CONTAINER_SOURCE"
 
     #
     # Time to build
     #
     - docker build --pull
       --build-arg=VERSION_INFO="${CI_PROJECT_TITLE} [${CI_PROJECT_PATH}] ${CONTAINER_VERSION} build ${CI_PIPELINE_IID} commit ${CI_COMMIT_SHORT_SHA} ($TIMESTAMP_RFC3339)"
-      "${LABELS[@]}"
+      "$@"
       --tag "${CONTAINER_TAG}" .
 
     # Push container tag
@@ -129,8 +132,6 @@ build:
 
 test:
   stage: test
-  tags:
-    - dind
   script:
     - docker pull "${CONTAINER_TAG}"
     - docker run -e CI=true "${CONTAINER_TAG}"
@@ -140,8 +141,6 @@ test:
 
 release:
   stage: release
-  tags:
-    - dind
   script:
     # Grab CI image
     - docker pull "${CONTAINER_TAG}"
