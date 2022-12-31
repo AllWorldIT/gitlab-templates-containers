@@ -55,13 +55,13 @@ build:
         CONTAINER_VERSION="rolling${REPO_PREFIX} ${TIMESTAMP}";
         export CONTAINER_IMAGE_PUSH="${CI_REGISTRY_IMAGE}${REPO_PREFIX}:${TIMESTAMP}";
         export CONTAINER_IMAGE_PUSH_LATEST="${CI_REGISTRY_IMAGE}${REPO_PREFIX}:latest";
-      # And if we're tagged, it means we're just pushing that tag
+      \# And if we're tagged, it means we're just pushing that tag
       elif [ -n "${CI_COMMIT_TAG}" ]; then
-        # Remove v before the version
+        \# Remove v before the version
         CONTAINER_IMAGE_TAG_REL=$(echo "${CI_COMMIT_TAG}" | sed -e 's/^v//');
-        # Remove the release
+        \# Remove the release
         CONTAINER_IMAGE_TAG=$(echo "${CONTAINER_IMAGE_TAG_REL}" | sed -E -e 's/-[0-9][0-9\.]*$//');
-        # If both match we didn't have a correctly formatted version
+        \# If both match we didn't have a correctly formatted version
         if [ "${CONTAINER_IMAGE_TAG_REL}" == "${CONTAINER_IMAGE_TAG}" ]; then
           echo "ERROR - Tag is in the wrong format. It should be 'vX.Y.Z-A.B'";
           exit 1;
@@ -93,21 +93,21 @@ build:
 
     - LABELS+=(--label "org.opencontainers.image.ref.name=$CI_PROJECT_PATH")
 
-    - [ -z "$CONTAINER_TITLE" ] && CONTAINER_TITLE="$CI_PROJECT_TITLE"
+    - \[ -z "$CONTAINER_TITLE" ] && CONTAINER_TITLE="$CI_PROJECT_TITLE"
     - LABELS+=(--label "org.opencontainers.image.title=$CONTAINER_TITLE")
 
-    - [ -z "$CONTAINER_DESCRIPTION" ] && CONTAINER_DESCRIPTION="$CI_PROJECT_DESCRIPTION"
+    - \[ -z "$CONTAINER_DESCRIPTION" ] && CONTAINER_DESCRIPTION="$CI_PROJECT_DESCRIPTION"
     - LABELS+=(--label "org.opencontainers.image.description=$PROJECT_DESCRIPTION")
 
     - LABELS+=(--label "org.opencontainers.image.base.name=$CONTAINER_IMAGE_PUSH")
 
-    - [ -z "$CONTAINER_URL" ] && CONTAINER_URL="$CI_PROJECT_URL"
+    - \[ -z "$CONTAINER_URL" ] && CONTAINER_URL="$CI_PROJECT_URL"
     - LABELS+=(--label "org.opencontainers.image.url=$CONTAINER_URL")
 
-    - [ -z "$CONTAINER_DOCUMENTATION" ] && CONTAINER_DOCUMENTATION="$CI_PROJECT_URL"
+    - \[ -z "$CONTAINER_DOCUMENTATION" ] && CONTAINER_DOCUMENTATION="$CI_PROJECT_URL"
     - LABELS+=(--label "org.opencontainers.image.documentation=$CONTAINER_DOCUMENTATION)
 
-    - [ -z "$CONTAINER_SOURCE" ] && CONTAINER_SOURCE="${CI_PROJECT_URL}.git"
+    - \[ -z "$CONTAINER_SOURCE" ] && CONTAINER_SOURCE="${CI_PROJECT_URL}.git"
     - LABELS+=(--label "org.opencontainers.image.source=$CONTAINER_SOURCE")
 
     #
