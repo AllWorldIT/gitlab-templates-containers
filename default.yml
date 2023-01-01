@@ -49,7 +49,7 @@ build:
       echo "CI_COMMIT_BRANCH: ${CI_COMMIT_BRANCH}"
       echo "CI_COMMIT_TAG: ${CI_COMMIT_TAG}"
     # Setup the CI image name we'll be using
-    - export CONTAINER_TAG="/builds:${CI_PIPELINE_IID}"
+    - export CONTAINER_TAG="/pipelines:${CI_PIPELINE_IID}"
     # If we're a branch we'll be adding a :latest push
     - |
       if [ -n "${CI_COMMIT_BRANCH}" ]; then
