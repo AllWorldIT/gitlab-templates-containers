@@ -37,7 +37,7 @@ before_script:
   - echo "${CI_REGISTRY_PASSWORD}" | docker login --username "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"
   # Docker Hub login
   - |
-    if [ -n "${DOCKERHUB_REGISTRY_USER}" -a -n "${DOCKERHUB_REGISTRY_PASSWORD}" ]; then
+    if [ -n "${DOCKERHUB_REGISTRY}" -a -n "${DOCKERHUB_REGISTRY_USER}" -a -n "${DOCKERHUB_REGISTRY_PASSWORD}" ]; then
       echo "DockerHub login...";
       echo "${DOCKERHUB_REGISTRY_PASSWORD}" | docker login --username "${DOCKERHUB_REGISTRY_USER}" --password-stdin;
     fi
@@ -196,9 +196,9 @@ release:
     # Check if we're pushing to Docker Hub
     - |
       set -x
-      if [ -n "${DOCKERHUB_REGISTRY_USER}" ]; then
+      if [ -n "${DOCKERHUB_REGISTRY}" ]; then
         echo "Pushing "${CONTAINER_IMAGE_PUSH_DH}" to Docker Hub..."
-        docker tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" "${CONTAINER_IMAGE_PUSH_DH}"
+        docker tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" "${DOCKERHUB_REGISTRY}${CONTAINER_IMAGE_PUSH_DH}"
         docker push "${CONTAINER_IMAGE_PUSH_DH}"
       fi
       set +x
