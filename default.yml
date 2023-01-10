@@ -161,7 +161,7 @@ test:
       if [ -d usr/local/share/flexible-docker-containers/tests.d ]; then
         echo "Pulling '${CI_REGISTRY_IMAGE}${CONTAINER_TAG}'..."
         docker pull "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
-        docker run -e CI=true "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
+        docker run -e FDC_CI=true "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
       else
         echo "No Flexible Docker Container tests to run, skipping"
       fi
