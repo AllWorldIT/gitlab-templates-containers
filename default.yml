@@ -27,13 +27,20 @@ variables:
 
 # Log into our repositories before any script being run
 before_script:
+  # Group login incase we need to pull group images from a private registry
   - |
     if [ -n "${GROUP_CI_REGISTRY_USER}" -a -n "${GROUP_CI_REGISTRY_PASSWORD}" ]; then
-      echo "Group CI login..."
-      echo "${GROUP_CI_REGISTRY_PASSWORD}" | docker login --username "${GROUP_CI_REGISTRY_USER}" --password-stdin "${GROUP_CI_REGISTRY}"
+      echo "Group CI login to '${GROUP_CI_REGISTRY}'...";
+      echo "${GROUP_CI_REGISTRY_PASSWORD}" | docker login --username "${GROUP_CI_REGISTRY_USER}" --password-stdin "${GROUP_CI_REGISTRY}";
     fi
+  # Login to this repositories registry
   - echo "${CI_REGISTRY_PASSWORD}" | docker login --username "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"
-
+  # Docker Hub login
+  - |
+    if [ -n "${DOCKERHUB_REGISTRY_USER}" -a -n "${DOCKERHUB_REGISTRY_PASSWORD}" ]; then
+      echo "DockerHub login...";
+      echo "${DOCKERHUB_REGISTRY_PASSWORD}" | docker login --username "${DOCKERHUB_REGISTRY_USER}" --password-stdin;
+    fi
 
 build:
   stage: build
@@ -46,22 +53,27 @@ build:
     - |
       echo "TIMESTAMP: ${TIMESTAMP}"
       echo "TIMESTAMP_RFC3339: ${TIMESTAMP_RFC3339}"
-      echo "CI_COMMIT_BRANCH: ${CI_COMMIT_BRANCH}"
+      echo "CI_COMMIT_BRANCH: ${CI_COMMIT_BRANCH} (default: ${CI_DEFAULT_BRANCH})"
       echo "CI_COMMIT_TAG: ${CI_COMMIT_TAG}"
     # Setup the CI image name we'll be using
     - export CONTAINER_TAG="/pipelines:${CI_PIPELINE_IID}"
     # If we're a branch we'll be adding a :latest push
     - |
+      set -x
+      # If we're dealing with a branch
       if [ -n "${CI_COMMIT_BRANCH}" ]; then
-        if [ "${CI_COMMIT_BRANCH}" != "master" -a "${CI_COMMIT_BRANCH}" != "main" ]; then
-          REPO_PREFIX="/${CI_COMMIT_BRANCH}"
-        else
+        BRANCH_VER=$(echo "${CI_COMMIT_BRANCH}" | sed -e 's/^v//')
+        if [ "${CI_COMMIT_BRANCH}" = "$CI_DEFAULT_BRANCH" ]; then
           REPO_PREFIX=""
+          export CONTAINER_IMAGE_PUSH_DH=":latest"
+        else
+          REPO_PREFIX="/${BRANCH_VER}"
+          export CONTAINER_IMAGE_PUSH_DH=":latest-${BRANCH_VER}"
         fi
         CONTAINER_VERSION="rolling${REPO_PREFIX} ${TIMESTAMP}"
         export CONTAINER_IMAGE_PUSH="${REPO_PREFIX}:${TIMESTAMP}"
         export CONTAINER_IMAGE_PUSH_LATEST="${REPO_PREFIX}:latest"
-      # And if we're tagged, it means we're just pushing that tag
+      # If we're dealing with a tag
       elif [ -n "${CI_COMMIT_TAG}" ]; then
         # Remove v before the version
         CONTAINER_IMAGE_TAG_REL=$(echo "${CI_COMMIT_TAG}" | sed -e 's/^v//')
@@ -69,58 +81,71 @@ build:
         CONTAINER_IMAGE_TAG=$(echo "${CONTAINER_IMAGE_TAG_REL}" | sed -E -e 's/-[0-9][0-9\.]*$//')
         # If both match we didn't have a correctly formatted version
         if [ "${CONTAINER_IMAGE_TAG_REL}" == "${CONTAINER_IMAGE_TAG}" ]; then
-          echo "ERROR - Tag is in the wrong format. It should be 'vX.Y.Z-A.B'"
+          echo "ERROR - Tag '${CI_COMMIT_TAG}' is in the wrong format. It should be 'vX.Y.Z-A.B'"
           exit 1
         fi
+        REPO_PREFIX="/${CONTAINER_IMAGE_TAG}"
         CONTAINER_VERSION="version ${CI_COMMIT_TAG}"
-        export CONTAINER_IMAGE_PUSH=":${CONTAINER_IMAGE_TAG}"
+        export CONTAINER_IMAGE_PUSH="${REPO_PREFIX}:${CONTAINER_IMAGE_TAG_REL}"
+        export CONTAINER_IMAGE_PUSH_LATEST="${REPO_PREFIX}:latest"
+        export CONTAINER_IMAGE_PUSH_DH=":${CONTAINER_IMAGE_TAG_REL}"
       else
         echo "ERROR determining type of image"
         exit 1
       fi
+      set +x
 
     #
     # Save variables we need later
     #
-    - echo "CONTAINER_TAG='${CONTAINER_TAG}'" > build.env
-    - echo "CONTAINER_IMAGE_PUSH='${CONTAINER_IMAGE_PUSH}'" >> build.env
-    - echo "CONTAINER_IMAGE_PUSH_LATEST='${CONTAINER_IMAGE_PUSH_LATEST}'" >> build.env
+    - echo "CONTAINER_TAG=${CONTAINER_TAG}" > build.env
+    - echo "CONTAINER_IMAGE_PUSH=${CONTAINER_IMAGE_PUSH}" >> build.env
+    - echo "CONTAINER_IMAGE_PUSH_LATEST=${CONTAINER_IMAGE_PUSH_LATEST}" >> build.env
+    - echo "CONTAINER_IMAGE_PUSH_DH=${CONTAINER_IMAGE_PUSH_DH}" >> build.env
 
     #
     # Work out labels to add
     #
-    - set --
-    - set -- "$@" --label "org.opencontainers.image.created=$TIMESTAMP_RFC3339"
-    - set -- "$@" --label "org.opencontainers.image.revision=$CI_COMMIT_SHORT_SHA"
+    - |
+      set -x
+      set --
+      set -- "$@" --label "org.opencontainers.image.created=$TIMESTAMP_RFC3339"
+      set -- "$@" --label "org.opencontainers.image.revision=$CI_COMMIT_SHORT_SHA"
 
-    - \[ -n "$CONTAINER_VENDOR" ] && set -- "$@" --label "org.opencontainers.image.vendor=$CONTAINER_VENDOR"
+      [ -n "$CONTAINER_VENDOR" ] && set -- "$@" --label "org.opencontainers.image.vendor=$CONTAINER_VENDOR"
 
-    - set -- "$@" --label "org.opencontainers.image.ref.name=$CONTAINER_IMAGE_PUSH"
+      set -- "$@" --label "org.opencontainers.image.ref.name=$CONTAINER_IMAGE_PUSH"
 
-    - \[ -z "$CONTAINER_TITLE" ] && CONTAINER_TITLE="$CI_PROJECT_TITLE"
-    - set -- "$@" --label "org.opencontainers.image.title=$CONTAINER_TITLE"
+      [ -z "$CONTAINER_TITLE" ] && CONTAINER_TITLE="$CI_PROJECT_TITLE"
+      set -- "$@" --label "org.opencontainers.image.title=$CONTAINER_TITLE"
 
-    - \[ -z "$CONTAINER_DESCRIPTION" ] && CONTAINER_DESCRIPTION="$CI_PROJECT_DESCRIPTION"
-    - set -- "$@" --label "org.opencontainers.image.description=$PROJECT_DESCRIPTION"
+      [ -z "$CONTAINER_DESCRIPTION" ] && CONTAINER_DESCRIPTION="$CI_PROJECT_DESCRIPTION"
+      [ -n "$CONTAINER_DESCRIPTION" ] && set -- "$@" --label "org.opencontainers.image.description=$PROJECT_DESCRIPTION"
 
-    - \[ -z "$CONTAINER_URL" ] && CONTAINER_URL="$CI_PROJECT_URL"
-    - set -- "$@" --label "org.opencontainers.image.url=$CONTAINER_URL"
+      [ -z "$CONTAINER_URL" ] && CONTAINER_URL="$CI_PROJECT_URL"
+      set -- "$@" --label "org.opencontainers.image.url=$CONTAINER_URL"
 
-    - \[ -z "$CONTAINER_DOCUMENTATION" ] && CONTAINER_DOCUMENTATION="$CI_PROJECT_URL"
-    - set -- "$@" --label "org.opencontainers.image.documentation=$CONTAINER_DOCUMENTATION"
+      [ -z "$CONTAINER_DOCUMENTATION" ] && CONTAINER_DOCUMENTATION="$CI_PROJECT_URL"
+      set -- "$@" --label "org.opencontainers.image.documentation=$CONTAINER_DOCUMENTATION"
 
-    - \[ -z "$CONTAINER_SOURCE" ] && CONTAINER_SOURCE="${CI_PROJECT_URL}.git"
-    - set -- "$@" --label "org.opencontainers.image.source=$CONTAINER_SOURCE"
+      [ -z "$CONTAINER_SOURCE" ] && CONTAINER_SOURCE="${CI_PROJECT_URL}.git"
+      set -- "$@" --label "org.opencontainers.image.source=$CONTAINER_SOURCE"
+      set +x
 
     #
     # Time to build
     #
+    - echo "Building '${CI_REGISTRY_IMAGE}${CONTAINER_TAG}'..."
+    - |
+      echo "VERSION_INFO: ${VERSION_INFO}"
+      echo "Labels: " "$@"
     - docker build --pull
       --build-arg=VERSION_INFO="${CI_PROJECT_TITLE} [${CI_PROJECT_PATH}] ${CONTAINER_VERSION} build ${CI_PIPELINE_IID} commit ${CI_COMMIT_SHORT_SHA} ($TIMESTAMP_RFC3339)"
       "$@"
       --tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" .
 
     # Push container tag
+    - echo "Pushing '${CI_REGISTRY_IMAGE}${CONTAINER_TAG}'..."
     - docker push "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
 
   artifacts:
@@ -131,8 +156,16 @@ build:
 test:
   stage: test
   script:
-    - docker pull "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
-    - docker run -e CI=true "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
+    - |
+      set -x
+      if [ -d usr/local/share/flexible-docker-containers/tests.d ]; then
+        echo "Pulling '${CI_REGISTRY_IMAGE}${CONTAINER_TAG}'..."
+        docker pull "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
+        docker run -e CI=true "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
+      else
+        echo "No Flexible Docker Container tests to run, skipping"
+      fi
+      set +x
   dependencies:
     - build
 
@@ -141,21 +174,34 @@ release:
   stage: release
   script:
     # Grab CI image
+    - echo "Pulling '${CI_REGISTRY_IMAGE}${CONTAINER_TAG}'..."
     - docker pull "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
     # This is the versioned image we're pushing
     - |
+      set -x
       if [ -n "${CONTAINER_IMAGE_PUSH}" ]; then
-        echo "Pushing '${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH}"
+        echo "Pushing '${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH}'..."
         docker tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH}"
         docker push "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH}"
       fi
+      set +x
     # And this is the :latest if applicable
     - |
+      set -x
       if [ -n "${CONTAINER_IMAGE_PUSH_LATEST}" ]; then
-        echo "Pushing :latest '${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH_LATEST}"
+        echo "Pushing :latest '${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH_LATEST}'..."
         docker tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH_LATEST}"
         docker push "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH_LATEST}"
       fi
+    # Check if we're pushing to Docker Hub
+    - |
+      set -x
+      if [ -n "${DOCKERHUB_REGISTRY_USER}" ]; then
+        echo "Pushing "${CONTAINER_IMAGE_PUSH_DH}" to Docker Hub..."
+        docker tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" "${CONTAINER_IMAGE_PUSH_DH}"
+        docker push "${CONTAINER_IMAGE_PUSH_DH}"
+      fi
+      set +x
   dependencies:
     - build
 
