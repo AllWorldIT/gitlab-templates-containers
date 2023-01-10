@@ -199,7 +199,7 @@ release:
       if [ -n "${DOCKERHUB_REGISTRY}" ]; then
         echo "Pushing "${CONTAINER_IMAGE_PUSH_DH}" to Docker Hub..."
         docker tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" "${DOCKERHUB_REGISTRY}${CONTAINER_IMAGE_PUSH_DH}"
-        docker push "${CONTAINER_IMAGE_PUSH_DH}"
+        docker push "${DOCKERHUB_REGISTRY}${CONTAINER_IMAGE_PUSH_DH}"
       fi
       set +x
   dependencies:
