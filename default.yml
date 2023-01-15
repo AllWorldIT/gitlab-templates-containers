@@ -93,12 +93,13 @@ build:
         echo "ERROR determining type of image"
         exit 1
       fi
+      export PIPELINE_IMAGE="${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
       set +x
 
     #
     # Save variables we need later
     #
-    - echo "PIPELINE_IMAGE=${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" > build.env
+    - echo "PIPELINE_IMAGE=${PIPELINE_IMAGE}" > build.env
     - echo "CONTAINER_TAG=${CONTAINER_TAG}" >> build.env
     - echo "CONTAINER_IMAGE_PUSH=${CONTAINER_IMAGE_PUSH}" >> build.env
     - echo "CONTAINER_IMAGE_PUSH_LATEST=${CONTAINER_IMAGE_PUSH_LATEST}" >> build.env
