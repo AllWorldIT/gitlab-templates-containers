@@ -98,7 +98,8 @@ build:
     #
     # Save variables we need later
     #
-    - echo "CONTAINER_TAG=${CONTAINER_TAG}" > build.env
+    - echo "PIPELINE_IMAGE=${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" > build.env
+    - echo "CONTAINER_TAG=${CONTAINER_TAG}" >> build.env
     - echo "CONTAINER_IMAGE_PUSH=${CONTAINER_IMAGE_PUSH}" >> build.env
     - echo "CONTAINER_IMAGE_PUSH_LATEST=${CONTAINER_IMAGE_PUSH_LATEST}" >> build.env
     - echo "CONTAINER_IMAGE_PUSH_DH=${CONTAINER_IMAGE_PUSH_DH}" >> build.env
@@ -135,18 +136,18 @@ build:
     #
     # Time to build
     #
-    - echo "Building '${CI_REGISTRY_IMAGE}${CONTAINER_TAG}'..."
+    - echo "Building '${PIPELINE_IMAGE}'..."
     - |
       echo "VERSION_INFO: ${VERSION_INFO}"
       echo "Labels: " "$@"
     - docker build --pull
       --build-arg=VERSION_INFO="${CI_PROJECT_TITLE} [${CI_PROJECT_PATH}] ${CONTAINER_VERSION} build ${CI_PIPELINE_IID} commit ${CI_COMMIT_SHORT_SHA} ($TIMESTAMP_RFC3339)"
       "$@"
-      --tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" .
+      --tag "${PIPELINE_IMAGE}" .
 
     # Push container tag
-    - echo "Pushing '${CI_REGISTRY_IMAGE}${CONTAINER_TAG}'..."
-    - docker push "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
+    - echo "Pushing '${PIPELINE_IMAGE}'..."
+    - docker push "${PIPELINE_IMAGE}"
 
   artifacts:
     reports:
@@ -159,9 +160,9 @@ test:
     - |
       set -x
       if [ -d usr/local/share/flexible-docker-containers/tests.d ]; then
-        echo "Pulling '${CI_REGISTRY_IMAGE}${CONTAINER_TAG}'..."
-        docker pull "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
-        docker run -e FDC_CI=true "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
+        echo "Pulling '${PIPELINE_IMAGE}'..."
+        docker pull "${PIPELINE_IMAGE}"
+        docker run -e FDC_CI=true "${PIPELINE_IMAGE}"
       else
         echo "No Flexible Docker Container tests to run, skipping"
       fi
@@ -174,14 +175,14 @@ release:
   stage: release
   script:
     # Grab CI image
-    - echo "Pulling '${CI_REGISTRY_IMAGE}${CONTAINER_TAG}'..."
-    - docker pull "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}"
+    - echo "Pulling '${PIPELINE_IMAGE}'..."
+    - docker pull "${PIPELINE_IMAGE}"
     # This is the versioned image we're pushing
     - |
       set -x
       if [ -n "${CONTAINER_IMAGE_PUSH}" ]; then
         echo "Pushing '${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH}'..."
-        docker tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH}"
+        docker tag "${PIPELINE_IMAGE}" "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH}"
         docker push "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH}"
       fi
       set +x
@@ -190,7 +191,7 @@ release:
       set -x
       if [ -n "${CONTAINER_IMAGE_PUSH_LATEST}" ]; then
         echo "Pushing :latest '${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH_LATEST}'..."
-        docker tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH_LATEST}"
+        docker tag "${PIPELINE_IMAGE}" "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH_LATEST}"
         docker push "${CI_REGISTRY_IMAGE}${CONTAINER_IMAGE_PUSH_LATEST}"
       fi
     # Check if we're pushing to Docker Hub
@@ -198,7 +199,7 @@ release:
       set -x
       if [ -n "${DOCKERHUB_REGISTRY}" ]; then
         echo "Pushing "${CONTAINER_IMAGE_PUSH_DH}" to Docker Hub..."
-        docker tag "${CI_REGISTRY_IMAGE}${CONTAINER_TAG}" "${DOCKERHUB_REGISTRY}${CONTAINER_IMAGE_PUSH_DH}"
+        docker tag "${PIPELINE_IMAGE}" "${DOCKERHUB_REGISTRY}${CONTAINER_IMAGE_PUSH_DH}"
         docker push "${DOCKERHUB_REGISTRY}${CONTAINER_IMAGE_PUSH_DH}"
       fi
       set +x
