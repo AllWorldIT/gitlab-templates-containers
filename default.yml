@@ -8,7 +8,8 @@ default:
 
 # Use a docker service to build our images
 services:
-  - docker:dind
+  - name: docker:dind
+    command: ["--experimental"]
 
 
 stages:
@@ -23,6 +24,7 @@ variables:
   DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_VERIFY: 1
   DOCKER_CERT_PATH: /certs/client
+  DOCKER_CLI_EXPERIMENTAL: yes
 
 
 # Log into our repositories before any script being run
@@ -159,7 +161,9 @@ build:
     - docker build --pull
       --build-arg=VERSION_INFO="$CI_PROJECT_TITLE [$CI_PROJECT_PATH] $CONTAINER_VERSION build $CI_PIPELINE_IID commit $CI_COMMIT_SHORT_SHA ($TIMESTAMP_RFC3339)"
       "$@"
-      --tag "$PIPELINE_IMAGE" .
+      --tag "$PIPELINE_IMAGE"
+      --squash
+      .
 
     # Push container tag
     - echo "Pushing '$PIPELINE_IMAGE'..."
