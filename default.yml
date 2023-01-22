@@ -179,7 +179,7 @@ test:
   script:
     - |
       set -x
-      if [ -d usr/local/share/flexible-docker-containers/tests.d ]; then
+      if [ -d /usr/local/share/flexible-docker-containers/tests.d ]; then
         echo "Pulling '$PIPELINE_IMAGE'..."
         docker pull "$PIPELINE_IMAGE"
         docker run -e FDC_CI=true "$PIPELINE_IMAGE"
