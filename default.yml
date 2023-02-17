@@ -158,7 +158,7 @@ build:
     - |
       echo "VERSION_INFO: $VERSION_INFO"
       echo "Labels: " "$@"
-    - docker build --pull
+    - docker buildx build --pull
       --build-arg=VERSION_INFO="$CI_PROJECT_TITLE [$CI_PROJECT_PATH] $CONTAINER_VERSION build $CI_PIPELINE_IID commit $CI_COMMIT_SHORT_SHA ($TIMESTAMP_RFC3339)"
       "$@"
       --tag "$PIPELINE_IMAGE"
