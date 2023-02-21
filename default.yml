@@ -181,7 +181,11 @@ test:
       set -x
       echo "Pulling '$PIPELINE_IMAGE'..."
       docker pull "$PIPELINE_IMAGE"
-      docker run -e FDC_CI=true "$PIPELINE_IMAGE"
+      if echo "$CI_RUNNER_TAGS" | tr , "\n" | grep -q -E '^priv$'; then
+        docker run --privileged -e FDC_CI=true "$PIPELINE_IMAGE"
+      else
+        docker run -e FDC_CI=true "$PIPELINE_IMAGE"
+      fi
       set +x
   dependencies:
     - build
