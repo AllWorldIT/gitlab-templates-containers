@@ -173,7 +173,7 @@ build:
     - LAYERS_BASE_COUNT=$(echo "$LAYERS_BASE" | tail -n +2 | wc -l)
     - echo -e "BASE LAYERS -> $LAYERS_BASE_COUNT\n$LAYERS_BASE"
     # Grab built image layer count
-    - LAYERS_BUILD=$(docker history rawbuild)
+    - LAYERS_BUILD=$(docker history rawimage)
     - LAYERS_BUILD_COUNT=$(echo "$LAYERS_BUILD" | tail -n +2 | wc -l)
     - echo -e "BASE LAYERS -> $LAYERS_BUILD_COUNT\n$LAYERS_BUILD"
     # Work out squash count
