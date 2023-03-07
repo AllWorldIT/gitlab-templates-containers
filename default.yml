@@ -51,7 +51,7 @@ commitlint:
   image: registry.conarx.tech/containers/commitlint
   script:
     - cd "$CI_PROJECT_DIR"
-    - run-commitlint --from="origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - run-commitlint --from="origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --to HEAD
   rules:
     - if: $CI_MERGE_REQUEST_IID
 
