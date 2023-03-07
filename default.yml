@@ -9,6 +9,7 @@ default:
 # Use a docker service to build our images
 services:
   - name: registry.conarx.tech/containers/docker-in-docker
+    alias: docker
 
 
 stages:
