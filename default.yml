@@ -153,6 +153,12 @@ build:
     #
     # Time to build
     #
+    # Work out base image name and pull base image
+    # NK: we need to do this so we can get the layer count below
+    - BASE_IMAGE_NAME=$(grep -E '^LABEL org.opencontainers.image.base.name' Dockerfile | awk '{ print $3 }' | sed -e 's/"//g')
+    - echo "Pulling base image..."
+    - docker pull "$BASE_IMAGE_NAME"
+    # Build time
     - echo "Building image..."
     - |
       echo "VERSION_INFO: $VERSION_INFO"
@@ -163,7 +169,6 @@ build:
       --tag rawimage
       .
     # Grab base image layer count
-    - BASE_IMAGE_NAME=$(docker inspect -f '{{index .Config.Labels "org.opencontainers.image.base.name"}}' rawimage)
     - LAYERS_BASE=$(docker inspect -f '{{.RootFS.Layers}}' "$BASE_IMAGE_NAME" | tr ' ' '\n')
     - if [ -z "$LAYERS_BASE" ]; then echo "ERROR - Failed to get base image layers"; exit 1; fi
     - LAYERS_BASE_COUNT=$(echo "$LAYERS_BASE" | wc -l)
