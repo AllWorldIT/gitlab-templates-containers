@@ -68,7 +68,7 @@ shellcheck:
 
 build:
   stage: build
-<<: *docker_login
+  <<: *docker_login
   script:
     #
     # Work out image naming and versioning
@@ -216,7 +216,7 @@ build:
 
 test:
   stage: test
-<<: *docker_login
+  <<: *docker_login
   script:
     - |
       set -x
@@ -234,7 +234,7 @@ test:
 
 release:
   stage: release
-<<: *docker_login
+  <<: *docker_login
   script:
     # Grab CI image
     - echo "Pulling '$PIPELINE_IMAGE'..."
