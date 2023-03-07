@@ -138,7 +138,7 @@ build:
       set -- "$@" --label "org.opencontainers.image.title=$CONTAINER_TITLE"
 
       [ -z "$CONTAINER_DESCRIPTION" ] && CONTAINER_DESCRIPTION="$CI_PROJECT_DESCRIPTION"
-      [ -n "$CONTAINER_DESCRIPTION" ] && set -- "$@" --label "org.opencontainers.image.description=$PROJECT_DESCRIPTION"
+      [ -n "$CONTAINER_DESCRIPTION" ] && set -- "$@" --label "org.opencontainers.image.description=$CONTAINER_DESCRIPTION"
 
       [ -z "$CONTAINER_URL" ] && CONTAINER_URL="$CI_PROJECT_URL"
       set -- "$@" --label "org.opencontainers.image.url=$CONTAINER_URL"
