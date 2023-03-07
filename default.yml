@@ -1,4 +1,4 @@
-image: docker:latest
+image: allworldit/docker
 
 
 default:
@@ -9,7 +9,6 @@ default:
 # Use a docker service to build our images
 services:
   - name: docker:dind
-    command: ["--experimental"]
 
 
 stages:
@@ -154,17 +153,18 @@ build:
     #
     # Time to build
     #
-    - echo "Building '$PIPELINE_IMAGE'..."
+    - echo "Building image..."
     - |
       echo "VERSION_INFO: $VERSION_INFO"
       echo "Labels: " "$@"
     - docker buildx build --pull
       --build-arg=VERSION_INFO="$CI_PROJECT_TITLE [$CI_PROJECT_PATH] $CONTAINER_VERSION build $CI_PIPELINE_IID commit $CI_COMMIT_SHORT_SHA ($TIMESTAMP_RFC3339)"
       "$@"
-      --tag "$PIPELINE_IMAGE"
-      --squash
+      --tag rawimage
       .
-
+    # Squash image
+    - echo "Squashing into '$PIPELINE_IMAGE'..."
+    - docker-squash -t "$PIPELINE_IMAGE" rawimage
     # Push container tag
     - echo "Pushing '$PIPELINE_IMAGE'..."
     - docker push "$PIPELINE_IMAGE"
