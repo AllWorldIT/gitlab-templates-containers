@@ -27,7 +27,8 @@ variables:
   DOCKER_CERT_PATH: /certs/client
 
 
-# Log into our repositories before any script being run
+# Log into our repositories before docker-related scripts are being run
+.docker_login_template: &docker_login
 before_script:
   # Group login incase we need to pull group images from a private registry
   - |
@@ -67,6 +68,7 @@ shellcheck:
 
 build:
   stage: build
+<<: *docker_login
   script:
     #
     # Work out image naming and versioning
@@ -214,6 +216,7 @@ build:
 
 test:
   stage: test
+<<: *docker_login
   script:
     - |
       set -x
@@ -231,6 +234,7 @@ test:
 
 release:
   stage: release
+<<: *docker_login
   script:
     # Grab CI image
     - echo "Pulling '$PIPELINE_IMAGE'..."
