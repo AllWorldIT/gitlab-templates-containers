@@ -99,6 +99,7 @@ build:
       set -x
       # If we're dealing with a branch
       if [ -n "$CI_COMMIT_BRANCH" ]; then
+        echo "THIS IS A COMMIT BRANCH => $CI_COMMIT_BRANCH"
         BRANCH_VER=$(echo "$CI_COMMIT_BRANCH" | sed -e 's/^v//')
         if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then
           REPO_PREFIX=""
@@ -121,6 +122,7 @@ build:
         export CONTAINER_IMAGE_PUSH_LATEST="${REPO_PREFIX}:latest"
       # If we're dealing with a tag
       elif [ -n "$CI_COMMIT_TAG" ]; then
+        echo "THIS IS A COMMIT TAG => $CI_COMMIT_TAG"
         # Remove v before the version
         CONTAINER_IMAGE_TAG_REL=$(echo "$CI_COMMIT_TAG" | sed -e 's/^v//')
         # Remove the release
@@ -137,10 +139,17 @@ build:
         export CONTAINER_IMAGE_PUSH_LATEST="${REPO_PREFIX}:latest"
         export CONTAINER_IMAGE_PUSH_DH=":$CONTAINER_IMAGE_TAG_REL"
 
+      # If we're dealing with a merge request
+      elif [ -n "$CI_MERGE_REQUEST_IID"]
+        echo "THIS IS A MERGE REQUST => $CI_MERGE_REQUEST_IID"
+
+      # Finally we don't know wtf this is??
       else
         echo "ERROR determining type of image"
         exit 1
       fi
+
+      # Export our pipeline registry image
       export PIPELINE_IMAGE="$CI_REGISTRY_IMAGE$CONTAINER_TAG"
       set +x
 
