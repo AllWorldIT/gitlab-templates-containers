@@ -162,14 +162,20 @@ build:
       "$@"
       --tag rawimage
       .
-    # Grab base image name and ID
+    # Grab base image layer count
     - BASE_IMAGE_NAME=$(docker inspect -f '{{index .Config.Labels "org.opencontainers.image.base.name"}}' rawimage)
-    - if [ -z "$BASE_IMAGE_NAME" ]; then echo "ERROR - Docker LABEL 'org.opencontainers.image.base.name' must exist"; exit 1; fi
-    - |
-      BASE_IMAGE_ID=$(docker inspect -f '{{.Id}}' rawimage | cut -d: -f2)
+    - LAYERS_BASE=$(docker inspect -f '{{.RootFS.Layers}}' "$BASE_IMAGE_NAME" | tr ' ' '\n')
+    - if [ -z "$LAYERS_BASE" ]; then echo "ERROR - Failed to get base image layers"; exit 1; fi
+    - LAYERS_BASE_COUNT=$(echo "$LAYERS_BASE" | wc -l)
+    # Grab built image layer count
+    - LAYERS_BUILD=$(docker inspect -f '{{.RootFS.Layers}}' rawimage | tr ' ' '\n')
+    - if [ -z "$LAYERS_BUILD" ]; then echo "ERROR - Failed to get built image layers"; exit 1; fi
+    - LAYERS_BUILD_COUNT=$(echo "$LAYERS_BUILD" | wc -l)
+    # Work out squash count
+    - LAYER_SQUASH_COUNT=$((LAYERS_BUILD_COUNT - LAYERS_BASE_COUNT))
     # Squash image - grab number of layers
     - echo "Squashing '$PIPELINE_IMAGE' from '$BASE_IMAGE_NAME/$BASE_IMAGE_ID'..."
-    - docker-squash -f "$BASE_IMAGE_ID" -t "$PIPELINE_IMAGE" rawimage
+    - docker-squash -f "$LAYER_SQUASH_COUNT" -t "$PIPELINE_IMAGE" rawimage
     # Push container tag
     - echo "Pushing '$PIPELINE_IMAGE'..."
     - docker push "$PIPELINE_IMAGE"
