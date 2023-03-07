@@ -163,7 +163,7 @@ build:
       --tag rawimage
       .
     # Grab base image name and ID
-    - BASE_IMAGE_NAME=$(docker inspect -f '{{index .Config.Labels "org.opencontainers.image.base.name"}}')
+    - BASE_IMAGE_NAME=$(docker inspect -f '{{index .Config.Labels "org.opencontainers.image.base.name"}}' rawimage)
     - if [ -z "$BASE_IMAGE_NAME" ]; then echo "ERROR - Docker LABEL 'org.opencontainers.image.base.name' must exist"; exit 1; fi
     # Squash image - grab number of layers
     - echo "Squashing '$PIPELINE_IMAGE' from '$BASE_IMAGE_NAME'..."
