@@ -48,6 +48,9 @@ before_script:
 commitlint:
   stage: validate
   image: registry.conarx.tech/containers/commitlint
+  script:
+    - cd "$CI_PROJECT_DIR"
+    - run-commitlint
   rules:
     - if: $CI_MERGE_REQUEST_IID
 
@@ -55,6 +58,9 @@ commitlint:
 shellcheck:
   stage: validate
   image: registry.conarx.tech/containers/shellcheck
+  script:
+    - cd "$CI_PROJECT_DIR"
+    - run-shellcheck
   rules:
     - if: $CI_MERGE_REQUEST_IID
 
