@@ -172,10 +172,12 @@ build:
     - LAYERS_BASE=$(docker inspect -f '{{.RootFS.Layers}}' "$BASE_IMAGE_NAME" | tr ' ' '\n')
     - if [ -z "$LAYERS_BASE" ]; then echo "ERROR - Failed to get base image layers"; exit 1; fi
     - LAYERS_BASE_COUNT=$(echo "$LAYERS_BASE" | wc -l)
+    - echo "BASE LAYERS: $LAYERS_BASE_COUNT\n$LAYERS_BASE"
     # Grab built image layer count
     - LAYERS_BUILD=$(docker inspect -f '{{.RootFS.Layers}}' rawimage | tr ' ' '\n')
     - if [ -z "$LAYERS_BUILD" ]; then echo "ERROR - Failed to get built image layers"; exit 1; fi
     - LAYERS_BUILD_COUNT=$(echo "$LAYERS_BUILD" | wc -l)
+    - echo "BASE LAYERS: $LAYERS_BUILD_COUNT\n$LAYERS_BUILD"
     # Work out squash count
     - LAYER_SQUASH_COUNT=$((LAYERS_BUILD_COUNT - LAYERS_BASE_COUNT))
     # Squash image - grab number of layers
