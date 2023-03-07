@@ -1,3 +1,13 @@
+# Copyright (c) 2022-2023, AllWorldIT. All Rights Reserved.
+
+
+
+include:
+  - project: 'gitlab/templates/workflows'
+    ref: main
+    file: '/MergeRequest-Pipelines-MultiBranch.yml'
+
+
 image: registry.conarx.tech/containers/docker
 
 
