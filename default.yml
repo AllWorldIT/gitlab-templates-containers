@@ -140,7 +140,7 @@ build:
         export CONTAINER_IMAGE_PUSH_DH=":$CONTAINER_IMAGE_TAG_REL"
 
       # If we're dealing with a merge request
-      elif [ -n "$CI_MERGE_REQUEST_IID"]; then
+      elif [ -n "$CI_MERGE_REQUEST_IID" ]; then
         echo "THIS IS A MERGE REQUST => $CI_MERGE_REQUEST_IID"
 
       # Finally we don't know wtf this is??
