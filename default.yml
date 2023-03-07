@@ -13,6 +13,7 @@ services:
 
 
 stages:
+  - validate
   - build
   - test
   - release
@@ -42,6 +43,21 @@ before_script:
       echo "DockerHub login...";
       echo "$DOCKERHUB_REGISTRY_PASSWORD" | docker login --username "$DOCKERHUB_REGISTRY_USER" --password-stdin;
     fi
+
+
+commitlint:
+  stage: validate
+  image: registry.conarx.tech/containers/commitlint
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+
+
+shellcheck:
+  stage: validate
+  image: registry.conarx.tech/containers/shellcheck
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+
 
 build:
   stage: build
