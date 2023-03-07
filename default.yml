@@ -1,4 +1,4 @@
-image: allworldit/docker
+image: registry.conarx.tech/containers/docker
 
 
 default:
@@ -8,7 +8,7 @@ default:
 
 # Use a docker service to build our images
 services:
-  - name: docker:dind
+  - name: registry.conarx.tech/containers/docker-in-docker
 
 
 stages:
