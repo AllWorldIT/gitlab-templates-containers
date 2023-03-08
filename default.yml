@@ -73,8 +73,7 @@ commitlint:
   script:
     - cd "$CI_PROJECT_DIR"
     - run-commitlint --from "$CI_MERGE_REQUEST_DIFF_BASE_SHA" --to HEAD
-  rules:
-    <<: *rules_for_mrs
+  <<: *rules_for_mrs
 
 
 shellcheck:
@@ -83,8 +82,7 @@ shellcheck:
   script:
     - cd "$CI_PROJECT_DIR"
     - run-shellcheck .
-  rules:
-    <<: *rules_for_mrs
+  <<: *rules_for_mrs
 
 
 build:
