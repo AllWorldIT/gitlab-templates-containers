@@ -63,7 +63,10 @@ commitlint:
     - cd "$CI_PROJECT_DIR"
     - run-commitlint --from "$CI_MERGE_REQUEST_DIFF_BASE_SHA" --to HEAD
   rules:
-    - if: $CI_MERGE_REQUEST_IID
+    <<: *rules_for_merge_request
+    <<: *rules_for_exclude_branch_when_merge_request
+    <<: *rules_for_exclude_refprotected
+    <<: *rules_for_branch
 
 
 shellcheck:
@@ -73,7 +76,10 @@ shellcheck:
     - cd "$CI_PROJECT_DIR"
     - run-shellcheck .
   rules:
-    - if: $CI_MERGE_REQUEST_IID
+    <<: *rules_for_merge_request
+    <<: *rules_for_exclude_branch_when_merge_request
+    <<: *rules_for_exclude_refprotected
+    <<: *rules_for_branch
 
 
 build:
