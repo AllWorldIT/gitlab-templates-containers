@@ -70,7 +70,13 @@ commitlint:
   image: registry.conarx.tech/containers/commitlint
   script:
     - cd "$CI_PROJECT_DIR"
-    - run-commitlint --from "$CI_MERGE_REQUEST_DIFF_BASE_SHA" --to HEAD
+    - |
+      if [ "$CI_COMMIT_BEFORE_SHA" == "0000000000000000000000000000000000000000" ]; then
+        START_COMMIT=HEAD^
+      else
+        START_COMMIT=$CI_MERGE_REQUEST_DIFF_BASE_SHA
+      fi
+    - run-commitlint --from "$START_COMMIT" --to HEAD
   <<: *rules_for_mrs
 
 
