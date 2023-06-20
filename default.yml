@@ -38,6 +38,9 @@ variables:
 
 
 # Log into our repositories before docker-related scripts are being run
+#
+# WARNING - NK: some images may be using this
+#
 .docker_login_template: &docker_login
   before_script:
     # Group login incase we need to pull group images from a private registry
@@ -98,6 +101,8 @@ build:
     # Work out image naming and versioning
     #
     - if [ -e docker_release_version.sh ]; then source ./docker_release_version.sh; fi
+    - if [ -x get_release_version ]; then CONTAINER_VERSION_EXTRA=$(./get_release_version); fi
+    -
     - TIMESTAMP=$(date +%Y%m%d%H%M%S)
     - TIMESTAMP_RFC3339=$(date -Iseconds | sed -e 's/T/ /')
     - |
