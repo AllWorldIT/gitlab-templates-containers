@@ -102,7 +102,6 @@ build:
     #
     - if [ -e docker_release_version.sh ]; then source ./docker_release_version.sh; fi
     - if [ -x get_release_version ]; then CONTAINER_VERSION_EXTRA=$(./get_release_version); fi
-    -
     - TIMESTAMP=$(date +%Y%m%d%H%M%S)
     - TIMESTAMP_RFC3339=$(date -Iseconds | sed -e 's/T/ /')
     - |
