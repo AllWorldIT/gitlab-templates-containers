@@ -241,6 +241,11 @@ build:
     - LAYER_SQUASH_COUNT=$((LAYERS_BUILD_COUNT - LAYERS_BASE_COUNT))
     # Squash image - grab number of layers
     - echo "Squashing '$PIPELINE_IMAGE' from '$BASE_IMAGE_NAME/$BASE_IMAGE_ID'..."
+    - |
+      if [ -n "$UPDATE_DOCKER_SQUASH" ]; then
+        echo "Updating docker-squash..."
+        pip install --no-cache --use-pep517 --break-system-packages docker-squash
+      fi
     - docker-squash -f "$LAYER_SQUASH_COUNT" -t "$PIPELINE_IMAGE" rawimage
     # Push container tag
     - echo "Pushing '$PIPELINE_IMAGE'..."
