@@ -244,7 +244,7 @@ build:
     - |
       if [ -n "$UPDATE_DOCKER_SQUASH" ]; then
         echo "Updating docker-squash..."
-        pip install --no-cache --use-pep517 --break-system-packages docker-squash
+        pip install --upgrade --no-cache --use-pep517 --break-system-packages docker-squash
       fi
     - docker-squash -f "$LAYER_SQUASH_COUNT" -t "$PIPELINE_IMAGE" rawimage
     # Push container tag
