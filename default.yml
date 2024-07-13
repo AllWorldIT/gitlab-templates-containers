@@ -216,7 +216,7 @@ build:
     #
     # Work out base image name and pull base image
     # NK: we need to do this so we can get the layer count below
-    - BASE_IMAGE_NAME=$(grep -E '^LABEL org.opencontainers.image.base.name' Dockerfile | awk '{ print $3 }' | sed -e 's/"//g')
+    - BASE_IMAGE_NAME=$(grep -E '^LABEL org.opencontainers.image.base.name' Dockerfile | sed -e 's/=/ /' | awk '{ print $3 }' | sed -e 's/"//g')
     - echo "Pulling base image..."
     - docker pull "$BASE_IMAGE_NAME"
     # Build time
